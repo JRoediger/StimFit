@@ -101,7 +101,7 @@ for i = 1:npat
     if ~exist([patientfolder,filesep,'stimulations',filesep,model.settings.spacedef,filesep,model.settings.emodel],'dir')==7
         ea_dispt('No suited E-field templates found... Generating E-fields first... this may take a while.')
         try
-            generate_EF(patientfolder,options)
+            generate_EF(patientfolder)
         catch
             warning('Generating E-field templates failed!')
             continue
@@ -125,7 +125,6 @@ for i = 1:npat
     %     end
     
 end
-
 
 ea_dispt('Done')
 
@@ -194,30 +193,19 @@ end
 
 sidename = {'right','left'};
 
-% Check Version
-vatname = ['c00_a',sprintf('%02d',model.settings.maxamp*10),'_vat_evec',model.settings.dims{1},'_',sidename{1},'.nii'];
-try
-    stimpth = [patientfolder,filesep,'stimulations',filesep,'MNI_ICBM_2009b_NLIN_ASYM',filesep,model.settings.spacedef,filesep,model.settings.emodel];
-    spm_vol([stimpth,filesep, vatname]);
-catch
-    stimpth = [patientfolder,filesep,'stimulations',filesep,model.settings.spacedef,filesep,model.settings.emodel];
-    spm_vol([stimpth,filesep, vatname]);
-end
-
 % Determine number of contacts
 load([patientfolder,filesep,'ea_reconstruction.mat'],'reco')
 nconts = length(reco.mni.coords_mm{1,1});
 
 ea_dispt('Loading efields...')
-notfound = [];
-if exist(stimpth,'dir')
+stimpth = [patientfolder,filesep,'stimulations',filesep,model.settings.spacedef,filesep,model.settings.emodel];
+
+try 
     for side = 1:2
         for c = 1:nconts
-            %             try
             for dim = 1:length(model.settings.dims)
                 
-                % Load efields (remember to switch PL and PM contacts
-                % on left side)
+                % Load efields (remember to switch PL and PM contacts on left side)
                 if strcmp(sidename{side},'left') && contains(reco.props(side).elmodel,'Directed')
                     if  c==3 || c==6
                         vatname = ['c',sprintf('%02d',c),'_a',sprintf('%02d',model.settings.maxamp*10),'_vat_evec',model.settings.dims{dim},'_',sidename{side},'.nii'];
@@ -235,27 +223,49 @@ if exist(stimpth,'dir')
                 Vimg = Vimg(1:model.settings.sf:end,1:model.settings.sf:end,1:model.settings.sf:end);
                 
                 if dim == 1 && side==2
-                    Vimg = Vimg*-1;
+                    Vimg = Vimg*-1;             % Switch directionality of E-field vector in x-Dimension after flipping the left side
                 end
                 ef(side,c,:,dim) = Vimg(:);
             end
-            %             catch
-            %                 notfound = [notfound; c,model.settings.maxamp,side];
-            %             end
         end
-        
     end
-else
-    notfound = 1; % generate stims
+catch
+    
+    ea_dispt('E-field templates missing... continuing generating efields. This may take a while...')
+    generate_EF(patientfolder)
+
+    for side = 1:2
+        for c = 1:nconts
+            for dim = 1:length(model.settings.dims)
+                
+                % Load efields (remember to switch PL and PM contacts on left side)
+                if strcmp(sidename{side},'left') && contains(reco.props(side).elmodel,'Directed')
+                    if  c==3 || c==6
+                        vatname = ['c',sprintf('%02d',c),'_a',sprintf('%02d',model.settings.maxamp*10),'_vat_evec',model.settings.dims{dim},'_',sidename{side},'.nii'];
+                    elseif c==4 || c==7
+                        vatname = ['c',sprintf('%02d',c-2),'_a',sprintf('%02d',model.settings.maxamp*10),'_vat_evec',model.settings.dims{dim},'_',sidename{side},'.nii'];
+                    else
+                        vatname = ['c',sprintf('%02d',c-1),'_a',sprintf('%02d',model.settings.maxamp*10),'_vat_evec',model.settings.dims{dim},'_',sidename{side},'.nii'];
+                    end
+                else
+                    vatname = ['c',sprintf('%02d',c-1),'_a',sprintf('%02d',model.settings.maxamp*10),'_vat_evec',model.settings.dims{dim},'_',sidename{side},'.nii'];
+                end
+                
+                V = spm_vol([stimpth,filesep, vatname]);
+                Vimg = spm_read_vols(V);
+                Vimg = Vimg(1:model.settings.sf:end,1:model.settings.sf:end,1:model.settings.sf:end);
+                
+                if dim == 1 && side==2
+                    Vimg = Vimg*-1;             % Switch directionality of E-field vector in x-Dimension after flipping the left side
+                end
+                ef(side,c,:,dim) = Vimg(:);
+            end
+        end
+    end
 end
 
-if notfound == 1
-    ea_dispt('No efield simulation folder found... continuing generating efields. This may take a while...')
-elseif size(notfound,1) > 1
-    ea_dispt([num2str(size(notfound,1)), '/', num2str(nconts*2), ' simulations not found... continuing generating efields. This may take a while...'])
-end
 
-ef = ef/5;
+ef = ef/5;                              % E-field templates generated at 5mA
 efsample = ef(:,:,model.vxsample,:);
 ind = isnan(squeeze(sum(sum(sum(efsample,1),2),4)));
 efsample = efsample(:,:,~ind,:);
@@ -312,12 +322,9 @@ if exist([savepth,filesep,'monrev.mat'],'file')==2
                     imshow(contfig)
                     drawnow
                 end
-                
             end
-            
         else
             warning('Monopolar review settings differ from the once found in path... Continue to generate and overwrite new monopolar reviews')
-            keyboard
         end
     end
 end
@@ -325,7 +332,7 @@ end
 
 %% Predict Monopolar Review
 
-% Sollte noch parallelisiert werden
+% Should be parallelised
 if options.calcmonrev && ~monrevfound
 
     ea_dispt('')
@@ -409,7 +416,6 @@ if options.calcmonrev && ~monrevfound
             contcoords(:,:,side) = reco.mni.coords_mm{side};
         end
     end
-    toc
     save([savepth,filesep,'monrev'],'monrev_comb','monrev_ra','monrev_tr','monrev_se','monrev_ncomp','amplitudes')
 end
 
@@ -429,6 +435,7 @@ if options.calcoptdistr
     %     Aeq = [];
     %     beq = [];
     
+    % Set parameters for optimizer
     optimizeroptions = optimoptions('fmincon','Display', options.optimizer.Display.local,'CheckGradients',options.optimizer.CheckGradients,...
         'OptimalityTolerance',options.optimizer.OptimalityTolerance,'DiffMinChange',options.optimizer.DiffMinChange,'MaxIterations',options.optimizer.MaxIterations,...
         'PlotFcn',options.optimizer.PlotFcn,'StepTolerance',options.optimizer.StepTolerance,'ConstraintTolerance',options.optimizer.ConstraintTolerance);
@@ -457,6 +464,7 @@ if options.calcoptdistr
             efs(6:7,:) = flipud(efs(6:7,:));
         end
         
+        % Global variables to track iterations (Needs better solution!)
         if trackglob
             global checkit_mot checkit_se checkit_distmot checkit_distse counter optcounter
             checkit_mot = [];
@@ -561,9 +569,8 @@ if options.calcoptdistr
             checkval{3,side} = checkit_distmot;
             checkval{4,side} = checkit_distse;
             checkval{5,side} = startmulti;
-            save('checkval_test2_2','checkval')
+            save('StimFit_optimtrack','checkval')
         end
-        toc
     end
 end
 

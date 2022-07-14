@@ -1,4 +1,4 @@
-function generate_EF(ptpth,options)
+function generate_EF(ptpth)
 
 % Function to generate E-field templates in patient folder based on lead-DBS SimBio/Fieldtrip pipeline
 
