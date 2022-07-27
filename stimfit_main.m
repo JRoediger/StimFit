@@ -98,7 +98,7 @@ for i = 1:npat
     end
     
     % Generate E-field templates if necessary
-    if ~exist([patientfolder,filesep,'stimulations',filesep,model.settings.spacedef,filesep,model.settings.emodel],'dir')==7
+    if ~exist([patientfolder,filesep,'stimulations',filesep,model.settings.spacedef,filesep,model.settings.emodel],'dir')
         ea_dispt('No suited E-field templates found... Generating E-fields first... this may take a while.')
         try
             generate_EF(patientfolder)
