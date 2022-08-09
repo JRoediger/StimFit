@@ -7,4 +7,4 @@ https://www.medrxiv.org/content/10.1101/2022.04.08.22272471v1
 
 The software requires DBS electrodes reconstructed with Lead-DBS (https://github.com/netstim/leaddbs) as well as a trained model. For more information feel free to contact me (jan.roediger@charite.de). 
 
-The software is not for clinical use!
+The software is not approved for clinical use!
