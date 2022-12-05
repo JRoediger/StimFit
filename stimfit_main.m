@@ -60,6 +60,7 @@ else
     model.sPDFrange = nan;
 end
 
+options.optimizer.Track = 1;
 
 %% Prepare parallel computing
 
@@ -466,8 +467,9 @@ if options.calcoptdistr
         
         % Global variables to track iterations (Needs better solution!)
         if trackglob
-            global checkit_mot checkit_se checkit_distmot checkit_distse counter optcounter
-            checkit_mot = [];
+            global checkit_ar checkit_se checkit_tr checkit_distmot checkit_distse counter optcounter
+            checkit_ar = [];
+            checkit_tr = [];
             checkit_se = [];
             checkit_distmot = [];
             checkit_distse = [];
@@ -564,11 +566,12 @@ if options.calcoptdistr
             
         end
         if options.optimizer.Track
-            checkval{1,side} = checkit_mot;
-            checkval{2,side} = checkit_se;
-            checkval{3,side} = checkit_distmot;
-            checkval{4,side} = checkit_distse;
-            checkval{5,side} = startmulti;
+            checkval{1,side} = checkit_ar;
+            checkval{2,side} = checkit_tr;
+            checkval{3,side} = checkit_se;
+            checkval{4,side} = checkit_distmot;
+            checkval{5,side} = checkit_distse;
+            checkval{6,side} = startmulti;
             save('StimFit_optimtrack','checkval')
         end
     end
@@ -603,8 +606,9 @@ eff_tr = trMDL_range(maxind);
 eff_comb = eff_ra*(1-tremorweight) + eff_tr*tremorweight;
 
 if track
-    global checkit_mot counter checkit_distmot
-    checkit_mot(counter) = eff_comb;
+    global checkit_ar checkit_tr counter checkit_distmot
+    checkit_ar(counter) = eff_ra;
+    checkit_tr(counter) = eff_tr;
     checkit_distmot(counter,:) = cdist;
     counter = counter+1;
 end
