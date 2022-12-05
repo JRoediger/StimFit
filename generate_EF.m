@@ -16,7 +16,13 @@ load([efpth,'Stemplate.mat'])
 amp = 5;                                % Default amplitude to generate Efield templates
 
 % Load electrode model
-load([efpth,'elmodel',filesep,'Boston_vercise_directed_elspec.mat'])
+if strcmp(reco.props(1).elmodel,'Medtronic B33005')
+    load([efpth,'elmodel',filesep,'medtronic_b33005_elspec.mat'])
+elseif strcmp(reco.props(1).elmodel,'Boston Scientific Vercise Directed')
+    load([efpth,'elmodel',filesep,'boston_vercise_directed_elspec.mat'])
+else
+    warning('Electrode model not found')
+end
 
 
 for c = 1:8
