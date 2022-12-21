@@ -31,8 +31,38 @@ end
 
 %% Prepare Model
 ea_dispt('Load and prepare model...')
-
-load(options.modelpth)
+try % Load complete model
+    load(options.modelpth)
+catch % Load model parts individually
+    disp('Concatenating and saving model. This needs to be performed only once.')
+    
+    load([options.modelpth,'_raMDL'],'raMDL')
+    load([options.modelpth,'_trMDL'],'trMDL')
+    load([options.modelpth,'_sMDL'],'sMDL')
+    
+    model.raMDL_range = raMDL.raMDL_range;
+    model.raMDL_efvals = raMDL.raMDL_efvals;
+    model.raMDL_predsd = raMDL.raMDL_predsd;
+    model.raMDL_validind = raMDL.raMDL_validind;
+    model.raInvalid = raMDL.raInvalid;
+    model.trMDL_range = trMDL.trMDL_range;
+    model.trMDL_efvals = trMDL.trMDL_efvals;
+    model.trMDL_predsd = trMDL.trMDL_predsd;
+    model.trMDL_validind = trMDL.trMDL_validind;
+    model.trInvalid = trMDL.trInvalid;
+    model.sMDL_range = sMDL.sMDL_range;
+    model.sMDL_efvals = sMDL.sMDL_efvals;
+    model.sMDL_predsd = sMDL.sMDL_predsd;
+    model.sMDL_validind = sMDL.sMDL_validind;
+    model.sInvalid = sMDL.sInvalid;
+    model.settings = raMDL.settings;
+    model.modelnumber = raMDL.modelnumber;
+    model.vxsample = raMDL.vxsample;
+    model.refvecs = raMDL.refvecs;
+    
+    save(options.modelpth,'model','-v7.3')
+    clearvars raMDL sMDL trMDL
+end
 [~,options.mdlname] = fileparts(options.modelpth);
 
 if options.fastpredict
