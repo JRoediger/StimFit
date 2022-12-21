@@ -36,33 +36,38 @@ try % Load complete model
 catch % Load model parts individually
     disp('Concatenating and saving model. This needs to be performed only once.')
     
-    load([options.modelpth,'_raMDL'],'raMDL')
-    load([options.modelpth,'_trMDL'],'trMDL')
-    load([options.modelpth,'_sMDL'],'sMDL')
+    load([options.modelpth,'_part1'],'modelpart1')
+    load([options.modelpth,'_part2'],'modelpart2')
+    load([options.modelpth,'_part3'],'modelpart3')
+    load([options.modelpth,'_part4'],'modelpart4')
     
-    model.raMDL_range = raMDL.raMDL_range;
-    model.raMDL_efvals = raMDL.raMDL_efvals;
-    model.raMDL_predsd = raMDL.raMDL_predsd;
-    model.raMDL_validind = raMDL.raMDL_validind;
-    model.raInvalid = raMDL.raInvalid;
-    model.trMDL_range = trMDL.trMDL_range;
-    model.trMDL_efvals = trMDL.trMDL_efvals;
-    model.trMDL_predsd = trMDL.trMDL_predsd;
-    model.trMDL_validind = trMDL.trMDL_validind;
-    model.trInvalid = trMDL.trInvalid;
-    model.sMDL_range = sMDL.sMDL_range;
-    model.sMDL_efvals = sMDL.sMDL_efvals;
-    model.sMDL_predsd = sMDL.sMDL_predsd;
-    model.sMDL_validind = sMDL.sMDL_validind;
-    model.sInvalid = sMDL.sInvalid;
-    model.settings = raMDL.settings;
-    model.modelnumber = raMDL.modelnumber;
-    model.vxsample = raMDL.vxsample;
-    model.refvecs = raMDL.refvecs;
+    model.raMDL_range = modelpart1.raMDL_range;
+    model.raMDL_efvals = modelpart1.raMDL_efvals;
+    model.settings = modelpart1.settings;
+    model.modelnumber = modelpart1.modelnumber;
+    model.vxsample = modelpart1.vxsample;
+    model.refvecs = modelpart1.refvecs;
+    model.raMDL_validind = modelpart1.raMDL_validind;
+    model.raInvalid = modelpart1.raInvalid;    
     
+    model.trMDL_range = modelpart2.trMDL_range;
+    model.trMDL_efvals = modelpart2.trMDL_efvals;    
+    model.trMDL_validind = modelpart2.trMDL_validind;
+    model.trInvalid = modelpart2.trInvalid;
+    model.sMDL_range = modelpart2.sMDL_range;
+    model.sMDL_efvals = modelpart2.sMDL_efvals;
+    model.sMDL_validind = modelpart2.sMDL_validind;
+    model.sInvalid = modelpart2.sInvalid;
+    
+    model.trMDL_predsd = modelpart3.trMDL_predsd;
+    model.sMDL_predsd = modelpart3.sMDL_predsd;
+    
+    model.raMDL_predsd = modelpart4.raMDL_predsd; 
+
     save(options.modelpth,'model','-v7.3')
-    clearvars raMDL sMDL trMDL
+    clearvars modelpart1 modelpart2 modelpart3 modelpart4
 end
+
 [~,options.mdlname] = fileparts(options.modelpth);
 
 if options.fastpredict
