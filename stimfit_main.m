@@ -95,7 +95,7 @@ else
     model.sPDFrange = nan;
 end
 
-options.optimizer.Track = 1;
+% options.optimizer.Track = 1;
 
 %% Prepare parallel computing
 
@@ -136,12 +136,12 @@ for i = 1:npat
     % Generate E-field templates if necessary
     if ~exist([patientfolder,filesep,'stimulations',filesep,model.settings.spacedef,filesep,model.settings.emodel],'dir')
         ea_dispt('No suited E-field templates found... Generating E-fields first... this may take a while.')
-        try
+%         try
             generate_EF(patientfolder)
-        catch
-            warning('Generating E-field templates failed!')
-            continue
-        end
+%         catch
+%             warning('Generating E-field templates failed!')
+%             continue
+%         end
     end
     
     try
